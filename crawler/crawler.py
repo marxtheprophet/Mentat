@@ -6,7 +6,7 @@ import hashlib
 
 
 class Crawler:
-    def __init__(self, seeds, max_pages=200, max_depth=2):
+    def __init__(self, seeds, max_pages=300, max_depth=2):
         self.queue = [(url, 0) for url in seeds]
         self.visited = set()
         self.seen_hashes = set()
@@ -15,11 +15,8 @@ class Crawler:
         self.max_pages = max_pages
         self.max_depth = max_depth
 
-        self.allowed_domains = ["reddit.com", "medium.com", "github.com"]
-
     def is_allowed(self, url):
-        domain = urlparse(url).netloc
-        return any(d in domain for d in self.allowed_domains)
+        return any(d in url for d in ["github.com", "reddit.com", "medium.com"])
 
     def fetch(self, url):
         try:
@@ -45,29 +42,23 @@ class Crawler:
             if not self.is_allowed(link):
                 continue
 
-            # skip junk/system links
             if any(x in link for x in ["login", "signup", "api", "#", "help", "about"]):
                 continue
 
-            # Reddit → only post pages
             if "reddit.com" in link:
                 if "/comments/" not in link:
                     continue
 
-            # Medium → skip tag pages
             if "medium.com" in link:
                 if "/tag/" in link:
                     continue
 
-            # GitHub → STRICT: only github.com/user/repo
             if "github.com" in link:
                 parts = link.split("/")
 
-                # must be exactly: github.com/user/repo
                 if len(parts) != 5:
                     continue
 
-                # block non-user namespaces
                 if parts[3] in [
                     "features", "topics", "collections", "about",
                     "resources", "docs", "orgs", "sponsors",

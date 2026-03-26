@@ -16,7 +16,7 @@
 # print(f"Collected {len(docs)} documents")
 
 import json
-from crawler import crawler
+
 from bm25_search import BM25Search
 
 # load documents
