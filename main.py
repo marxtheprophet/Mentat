@@ -16,21 +16,54 @@
 # print(f"Collected {len(docs)} documents")
 
 import json
+from crawler.crawler import Crawler
 
-from bm25_search import BM25Search
+github_seeds = [
+    "https://github.com/topics/programming",
+    "https://github.com/topics/react"
+]
 
-# load documents
-with open("data/documents.json") as f:
-    docs = json.load(f)
+reddit_seeds = [
+    "https://old.reddit.com/r/programming/",
+    "https://old.reddit.com/r/webdev/"
+]
 
-search_engine = BM25Search(docs)
+medium_seeds = [
+    "https://medium.com/tag/programming",
+    "https://medium.com/tag/web-development"
+]
 
-query = input("Search: ")
+crawler_github = Crawler(github_seeds, max_pages=300)
+crawler_reddit = Crawler(reddit_seeds, max_pages=400)
+crawler_medium = Crawler(medium_seeds, max_pages=300)
 
-results = search_engine.search(query)
+docs_github = crawler_github.crawl()
+docs_reddit = crawler_reddit.crawl()
+docs_medium = crawler_medium.crawl()
 
-for doc, score in results:
-    print("\n---")
-    print("Score:", score)
-    print("Title:", doc["title"])
-    print("URL:", doc["url"])
+all_docs = docs_github + docs_reddit + docs_medium
+
+with open("data/documents.json", "w") as f:
+    json.dump(all_docs, f, indent=2)
+
+print("Total documents:", len(all_docs))
+
+# import json
+
+# from bm25_search import BM25Search
+
+# # load documents
+# with open("data/documents.json") as f:
+#     docs = json.load(f)
+
+# search_engine = BM25Search(docs)
+
+# query = input("Search: ")
+
+# results = search_engine.search(query)
+
+# for doc, score in results:
+#     print("\n---")
+#     print("Score:", score)
+#     print("Title:", doc["title"])
+#     print("URL:", doc["url"])
