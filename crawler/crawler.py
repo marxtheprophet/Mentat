@@ -34,7 +34,6 @@ class Crawler:
 
         title = soup.title.string if soup.title else ""
 
-        # extract main text
         paragraphs = soup.find_all("p")
         content = " ".join([p.get_text() for p in paragraphs])
 
@@ -43,31 +42,30 @@ class Crawler:
         for a in soup.find_all("a", href=True):
             link = urljoin(base_url, a["href"])
 
-            # only allowed domains
             if not self.is_allowed(link):
                 continue
 
-            # skip junk/system links
             if any(x in link for x in ["login", "signup", "api", "#", "help", "about"]):
                 continue
 
-            # 🔴 REDDIT → only actual post pages
             if "reddit.com" in link:
                 if "/comments/" not in link:
                     continue
 
-            # 🟡 MEDIUM → skip tag/listing pages
             if "medium.com" in link:
                 if "/tag/" in link:
                     continue
 
-            # 🟢 GITHUB → keep only repo-like pages
             if "github.com" in link:
                 parts = link.split("/")
-                # repo URL looks like: github.com/user/repo
+
                 if len(parts) < 5:
                     continue
-                if parts[3] in ["features", "topics", "collections", "about"]:
+
+                if parts[3] in [
+                    "features", "topics", "collections", "about",
+                    "resources", "docs", "orgs", "sponsors", "search"
+                ]:
                     continue
 
             links.append(link)
@@ -97,7 +95,6 @@ class Crawler:
 
             title, content, links = self.parse(html, url)
 
-            # skip weak/duplicate content
             if not content.strip() or self.is_duplicate(content):
                 continue
 
@@ -107,11 +104,9 @@ class Crawler:
                 "content": content[:5000]
             })
 
-            # HARD STOP
             if len(self.documents) >= self.max_pages:
                 break
 
-            # add new links with increased depth
             for link in links:
                 if link not in self.visited:
                     self.queue.append((link, depth + 1))
