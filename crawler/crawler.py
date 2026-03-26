@@ -45,27 +45,40 @@ class Crawler:
             if not self.is_allowed(link):
                 continue
 
+            # skip junk/system links
             if any(x in link for x in ["login", "signup", "api", "#", "help", "about"]):
                 continue
 
+            # Reddit only post pages
             if "reddit.com" in link:
                 if "/comments/" not in link:
                     continue
 
+            # Medium skip tag pages
             if "medium.com" in link:
                 if "/tag/" in link:
                     continue
 
+            # GitHub  only repo root pages
             if "github.com" in link:
                 parts = link.split("/")
 
+                # must be github.com/user/repo
                 if len(parts) < 5:
                     continue
 
+                # block non-repo sections
                 if parts[3] in [
                     "features", "topics", "collections", "about",
                     "resources", "docs", "orgs", "sponsors", "search"
                 ]:
+                    continue
+
+                # block repo subpages
+                if any(x in link for x in [
+                    "/issues", "/pulls", "/actions",
+                    "/wiki", "/releases", "/discussions"
+                ]):
                     continue
 
             links.append(link)
