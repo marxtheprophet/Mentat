@@ -1,12 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 import time
 import hashlib
 
 
 class Crawler:
-    def __init__(self, seeds, max_pages=300, max_depth=2):
+    def __init__(self, seeds, max_pages=5000, max_depth=2):
         self.queue = [(url, 0) for url in seeds]
         self.visited = set()
         self.seen_hashes = set()
@@ -18,21 +18,41 @@ class Crawler:
     def is_allowed(self, url):
         return any(d in url for d in ["github.com", "reddit.com", "medium.com"])
 
+    def get_delay(self, url):
+        if "github.com" in url:
+            return 0.5
+        if "reddit.com" in url:
+            return 1.5
+        if "medium.com" in url:
+            return 1.5
+        return 1
+
     def fetch(self, url):
         try:
-            headers = {"User-Agent": "Mozilla/5.0"}
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+                "Accept-Language": "en-US,en;q=0.9"
+            }
             response = requests.get(url, headers=headers, timeout=5)
             return response.text
         except:
             return None
 
+    def is_blocked(self, html):
+        if not html:
+            return True
+        html = html.lower()
+        return any(x in html for x in [
+            "access denied", "blocked", "rate limit", "captcha"
+        ])
+
     def parse(self, html, base_url):
         soup = BeautifulSoup(html, "html.parser")
 
-        title = soup.title.string if soup.title else ""
+        title = soup.title.string.strip() if soup.title else ""
 
         paragraphs = soup.find_all("p")
-        content = " ".join([p.get_text() for p in paragraphs])
+        content = " ".join([p.get_text().strip() for p in paragraphs])
 
         links = []
 
@@ -88,12 +108,13 @@ class Crawler:
             self.visited.add(url)
 
             html = self.fetch(url)
-            if not html:
+
+            if not html or self.is_blocked(html):
                 continue
 
             title, content, links = self.parse(html, url)
 
-            if not content.strip() or self.is_duplicate(content):
+            if not content or self.is_duplicate(content):
                 continue
 
             self.documents.append({
@@ -109,6 +130,6 @@ class Crawler:
                 if link not in self.visited:
                     self.queue.append((link, depth + 1))
 
-            time.sleep(1)
+            time.sleep(self.get_delay(url))
 
         return self.documents
