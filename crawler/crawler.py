@@ -49,7 +49,7 @@ class Crawler:
     def parse(self, html, base_url):
         soup = BeautifulSoup(html, "html.parser")
 
-        title = soup.title.string.strip() if soup.title else ""
+        title = soup.title.string.strip() if soup.title and soup.title.string else ""
 
         paragraphs = soup.find_all("p")
         content = " ".join([p.get_text().strip() for p in paragraphs])
@@ -123,11 +123,13 @@ class Crawler:
                 "content": content[:5000]
             })
 
+            print("Docs collected:", len(self.documents))
+
             if len(self.documents) >= self.max_pages:
                 break
 
             for link in links:
-                if link not in self.visited:
+                if link not in self.visited and len(self.queue) < 10000:
                     self.queue.append((link, depth + 1))
 
             time.sleep(self.get_delay(url))
