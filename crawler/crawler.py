@@ -65,14 +65,17 @@ class Crawler:
             if any(x in link for x in ["login", "signup", "api", "#", "help", "about"]):
                 continue
 
+            # Reddit: only posts
             if "reddit.com" in link:
                 if "/comments/" not in link:
                     continue
 
+            # Medium: only article pages
             if "medium.com" in link:
-                if "/tag/" in link:
+                if "/@" not in link:
                     continue
 
+            # GitHub: only repo root
             if "github.com" in link:
                 parts = link.split("/")
 
@@ -104,6 +107,10 @@ class Crawler:
             if url in self.visited or depth > self.max_depth:
                 continue
 
+            # force old reddit only
+            if "reddit.com" in url and "old.reddit.com" not in url:
+                continue
+
             print("Crawling:", url)
             self.visited.add(url)
 
@@ -114,7 +121,11 @@ class Crawler:
 
             title, content, links = self.parse(html, url)
 
-            if not content or self.is_duplicate(content):
+            # skip low-quality pages
+            if not content or len(content.split()) < 50:
+                continue
+
+            if self.is_duplicate(content):
                 continue
 
             self.documents.append({
