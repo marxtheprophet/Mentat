@@ -49,8 +49,10 @@ class Crawler:
     def parse(self, html, base_url):
         soup = BeautifulSoup(html, "html.parser")
 
+        # safe title extraction
         title = soup.title.string.strip() if soup.title and soup.title.string else ""
 
+        # extract content
         paragraphs = soup.find_all("p")
         content = " ".join([p.get_text().strip() for p in paragraphs])
 
@@ -59,26 +61,27 @@ class Crawler:
         for a in soup.find_all("a", href=True):
             link = urljoin(base_url, a["href"])
 
+            # only allowed domains
             if not self.is_allowed(link):
                 continue
 
+            # skip useless pages
             if any(x in link for x in ["login", "signup", "api", "#", "help", "about"]):
                 continue
 
-            # Reddit: only posts
+            # Reddit → only post pages
             if "reddit.com" in link:
                 if "/comments/" not in link:
                     continue
 
-            # Medium: only article pages
+            # Medium → only article pages
             if "medium.com" in link:
                 if "/@" not in link:
                     continue
 
-            # GitHub: only repo root
+            # GitHub → only repo root
             if "github.com" in link:
                 parts = link.split("/")
-
                 if len(parts) != 5:
                     continue
 
@@ -104,6 +107,7 @@ class Crawler:
         while self.queue and len(self.documents) < self.max_pages:
             url, depth = self.queue.pop(0)
 
+            # skip visited or too deep
             if url in self.visited or depth > self.max_depth:
                 continue
 
@@ -116,6 +120,7 @@ class Crawler:
 
             html = self.fetch(url)
 
+            # skip blocked or failed pages
             if not html or self.is_blocked(html):
                 continue
 
@@ -125,13 +130,19 @@ class Crawler:
             if not content or len(content.split()) < 50:
                 continue
 
+            # deduplication
             if self.is_duplicate(content):
                 continue
 
+            # create preview snippet
+            preview = content[:200]
+
+            # store document
             self.documents.append({
                 "url": url,
                 "title": title,
-                "content": content[:5000]
+                "content": content[:5000],
+                "preview": preview
             })
 
             print("Docs collected:", len(self.documents))
@@ -139,10 +150,12 @@ class Crawler:
             if len(self.documents) >= self.max_pages:
                 break
 
+            # add new links to queue (with control)
             for link in links:
                 if link not in self.visited and len(self.queue) < 10000:
                     self.queue.append((link, depth + 1))
 
+            # respect rate limits
             time.sleep(self.get_delay(url))
 
         return self.documents
