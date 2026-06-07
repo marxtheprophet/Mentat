@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentat — Developer Search</title>
+    <meta name="description" content="Search across curated programming resources from GitHub, Reddit, and Medium.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+
+        <header class="topbar">
+            <a href="/" class="brand">
+                <div class="brand__mark">M</div>
+                <span class="brand__name">Mentat</span>
+            </a>
+            <div class="topbar__right">
+                <span class="doc-count" id="doc-count-pill"></span>
+                <button class="icon-btn" id="stats-toggle" aria-label="Stats">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="8" width="3" height="6" rx="0.5"/><rect x="6.5" y="4" width="3" height="10" rx="0.5"/><rect x="11" y="1" width="3" height="13" rx="0.5"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="main">
+
+            <section class="hero" id="hero">
+                <h1 class="hero__title">
+                    Search <span class="hero__accent">smarter</span>
+                </h1>
+                <p class="hero__sub">
+                    Thousands of dev resources from GitHub, Reddit &amp; Medium — instantly ranked.
+                </p>
+
+                <form class="search" id="search-form" role="search" autocomplete="off">
+                    <svg class="search__icon" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M14 14l-3.5-3.5"/></svg>
+                    <input class="search__input" id="search-input" type="text" placeholder="Search anything…" spellcheck="false" aria-label="Search">
+                    <kbd class="search__kbd" id="search-kbd">⌘K</kbd>
+                    <button class="search__btn" type="submit" id="search-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10m-4-4 4 4-4 4"/></svg>
+                    </button>
+                </form>
+
+                <div class="chips" id="chips">
+                    <button class="chip" data-q="react hooks">React Hooks</button>
+                    <button class="chip" data-q="system design">System Design</button>
+                    <button class="chip" data-q="docker kubernetes">Docker &amp; K8s</button>
+                    <button class="chip" data-q="machine learning">Machine Learning</button>
+                    <button class="chip" data-q="api best practices">API Design</button>
+                </div>
+            </section>
+
+            <!-- Stats -->
+            <section class="panel" id="stats-panel" hidden>
+                <div class="panel__head">
+                    <h2 class="panel__title">Index overview</h2>
+                    <button class="panel__close" id="stats-close" aria-label="Close">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+                    </button>
+                </div>
+                <div class="stat-row" id="stats-grid"></div>
+            </section>
+
+            <!-- Results -->
+            <section class="results" id="results" hidden>
+                <div class="results__head">
+                    <p class="results__info" id="results-info"></p>
+                    <button class="text-btn" id="results-clear">Clear</button>
+                </div>
+                <div class="results__list" id="results-list"></div>
+            </section>
+
+            <!-- Loader -->
+            <div class="loading" id="loader" hidden>
+                <div class="loading__ring"></div>
+            </div>
+
+            <!-- Empty -->
+            <div class="empty" id="empty" hidden>
+                <p>No results found. Try something else.</p>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <span>Mentat · FastAPI + BM25 · <span id="doc-count">—</span> docs</span>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
